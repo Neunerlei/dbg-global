@@ -45,8 +45,13 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function onAutoloadDump(): void
     {
-        $installPath = $this->getGlobalInstallPath();
-        if (! $this->installWrapper($installPath)) {
+        if ($this->isGlobalInstallation()) {
+            $this->io->write(
+                'Ignoring installation of "neunerlei/dbg", because this is a global installation',
+                true,
+                IOInterface::VERBOSE
+            );
+            
             return;
         }
         
@@ -58,6 +63,19 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         }
         
         $this->io->write('<info>Successfully injected neunerlei/dbg into your project!</info>');
+    }
+    
+    /**
+     * Checks if the current vendor-directory is a subdirectory of the composer home directory.
+     * If that is the case, we can safely assume, that the installation is done globally...
+     *
+     * @return bool
+     */
+    protected function isGlobalInstallation(): bool
+    {
+        $config = $this->composer->getConfig();
+        
+        return Path::isBasePath($config->get('home'), $config->get('vendor-dir'));
     }
     
     /**
