@@ -10,7 +10,7 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\RootPackageInterface;
 use Composer\Plugin\PluginInterface;
-use Symfony\Component\Filesystem\Path;
+use Neunerlei\FileSystem\Path;
 
 class InstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
