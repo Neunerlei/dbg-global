@@ -15,6 +15,20 @@ accessible in your code.
 
 Happy debugging.
 
+## Shims and disabling them
+
+The plugin will create a shim of the neunerlei/dbg methods in the vendor directory of your local project, so that your IDE can find them
+for its autocompletion.
+
+If you don't want that to happen you can either disable the shim generation globally:
+```composer global config extra.neunerleiDevGlobal.noShim true```
+
+Alternatively you can disable the shim generation for specific directories as well:
+```composer global config extra.neunerleiDevGlobal.noShimDirs.0 /work/project```
+For multiple directories, raise the number after "noShimDirs" for each new directory.
+
+Use: ```composer global config extra.neunerleiDevGlobal``` to see the current configuration
+
 ## Postcardware
 
 You're free to use this package, but if it makes it to your production environment I highly appreciate you sending me a postcard from your hometown, mentioning

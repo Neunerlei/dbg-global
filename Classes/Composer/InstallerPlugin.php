@@ -7,9 +7,11 @@ namespace Neunerlei\DbgGlobal\Composer;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Package\RootPackageInterface;
 use Composer\Plugin\PluginInterface;
+use Neunerlei\FileSystem\Fs;
 use Neunerlei\FileSystem\Path;
 
 class InstallerPlugin implements PluginInterface, EventSubscriberInterface
@@ -74,6 +76,11 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
+        $this->provideShimFile(
+            $this->getShimSourcePath(),
+            $this->getShimTargetPath()
+        );
+        
         $this->io->write('<info>Successfully injected "' . static::TARGET_PACKAGE_NAME . '" into your project!</info>');
     }
     
@@ -133,6 +140,32 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     protected function getGlobalAutoloadPath(): string
     {
         return Path::join($this->getGlobalInstallPath(), 'vendor/autoload.php');
+    }
+    
+    /**
+     * Returns the path where the shim source file is located
+     *
+     * @return string
+     */
+    protected function getShimSourcePath(): string
+    {
+        return Path::join(
+            $this->getGlobalInstallPath(),
+            'vendor/' . static::TARGET_PACKAGE_NAME . '/functions.php'
+        );
+    }
+    
+    /**
+     * Returns the path where the shim file should be placed in the current project
+     *
+     * @return string
+     */
+    protected function getShimTargetPath(): string
+    {
+        return Path::join(
+            $this->composer->getConfig()->get('vendor-dir'),
+            'neunerlei-dbg-global-function-shim.php'
+        );
     }
     
     /**
@@ -213,6 +246,69 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $package->setAutoload($autoload);
         
         return true;
+    }
+    
+    /**
+     * Provides a copy of the functions.php in neunerlei/dbg as a shim for the current project.
+     *
+     * @param   string  $sourcePath  the output of getShimSourcePath()
+     * @param   string  $targetPath  the output of getShimTargetPath()
+     *
+     * @return void
+     */
+    protected function provideShimFile(string $sourcePath, string $targetPath): void
+    {
+        try {
+            Fs::remove($targetPath);
+            
+            if ($this->isShimGenerationDisabled($targetPath)) {
+                $this->io->write('Skipping shim generation, because it was disabled by the config', true, IOInterface::VERBOSE);
+                
+                return;
+            }
+            
+            Fs::copy($sourcePath, $targetPath);
+            $this->io->write(
+                'Created "' . static::TARGET_PACKAGE_NAME . '" shim file at: "' . $targetPath . '"',
+                true,
+                IOInterface::VERBOSE
+            );
+        } catch (\Throwable $e) {
+            $this->io->write(
+                '<error>Failed to generate a "' . static::TARGET_PACKAGE_NAME .
+                '"shim file, because an error occurred: "' . $e->getMessage() . '"</error>');
+        }
+    }
+    
+    /**
+     * Checks if a shim file can be generated at the provided target path
+     *
+     * @param   string  $targetPath  The path to where the shim file should be generated
+     *
+     * @return bool
+     */
+    protected function isShimGenerationDisabled(string $targetPath): bool
+    {
+        $extra = Factory::createGlobal($this->io, true)->getPackage()->getExtra();
+        if (! is_array($extra['neunerleiDevGlobal'] ?? null)) {
+            return false;
+        }
+        
+        $conf = $extra['neunerleiDevGlobal'];
+        
+        // Globally disabled
+        if (! empty($conf['noShim'])) {
+            return true;
+        }
+        
+        // Check if the target path is in the list of disabled directories
+        foreach ($conf as $k => $v) {
+            if (strpos($k, 'noShimDirs.') === 0 && strpos($targetPath, $v) === 0) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**
