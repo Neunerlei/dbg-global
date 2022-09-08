@@ -37,6 +37,12 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $this->io = $io;
     }
     
+    /**
+     * Handles the "pre-autoload-dump" by updating the global installation and adding
+     * its autoload.php to the autoload list of the current project.
+     *
+     * @return void
+     */
     public function onAutoloadDump(): void
     {
         $installPath = $this->getGlobalInstallPath();
@@ -54,16 +60,34 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $this->io->write('<info>Successfully injected neunerlei/dbg into your project!</info>');
     }
     
+    /**
+     * Returns the absolute path to the global installation directory of the package
+     *
+     * @return string
+     */
     protected function getGlobalInstallPath(): string
     {
         return Path::join(__FILE__, '../../../Wrap');
     }
     
+    /**
+     * Returns the absolute path to the global installation's autoload file to be included
+     * in the other packages that should be provided with the debug utilities
+     *
+     * @return string
+     */
     protected function getGlobalAutoloadPath(): string
     {
         return Path::join($this->getGlobalInstallPath(), 'vendor/autoload.php');
     }
     
+    /**
+     * Runs a composer update in the global installation path to load the required dependencies
+     *
+     * @param   string  $installationPath  The output of "getGlobalInstallPath()"
+     *
+     * @return bool
+     */
     protected function installWrapper(string $installationPath): bool
     {
         if (! function_exists('shell_exec')) {
@@ -104,6 +128,14 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         return true;
     }
     
+    /**
+     * Registers the global autoload file as a part of the currently installed bundle.
+     *
+     * @param   string                $autoloadPath  The output of getGlobalAutoloadPath()
+     * @param   RootPackageInterface  $package       The package to extend the autoload declaration for
+     *
+     * @return bool
+     */
     protected function registerAutoloadFile(string $autoloadPath, RootPackageInterface $package): bool
     {
         if (! is_readable($autoloadPath)) {
