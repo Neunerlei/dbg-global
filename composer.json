@@ -3,7 +3,7 @@
 	"description": "Companion plugin to install the neunerlei/dbg module globally in any composer project",
 	"type": "composer-plugin",
 	"license": "Apache-2.0",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"authors": [
 		{
 			"name": "Martin Neundorfer",
