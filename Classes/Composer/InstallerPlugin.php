@@ -14,6 +14,8 @@ use Neunerlei\FileSystem\Path;
 
 class InstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
+    public const TARGET_PACKAGE_NAME = 'neunerlei/dbg';
+    
     /**
      * @var Composer
      */
@@ -47,7 +49,7 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     {
         if ($this->isGlobalInstallation()) {
             $this->io->write(
-                'Ignoring installation of "neunerlei/dbg", because this is a global installation',
+                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because this is a global installation',
                 true,
                 IOInterface::VERBOSE
             );
@@ -58,11 +60,21 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $autoloadPath = $this->getGlobalAutoloadPath();
         $rootPackage = $this->composer->getPackage();
         
+        if ($this->isPresentInLocalInstallation()) {
+            $this->io->write(
+                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because it is already present in the dependency list',
+                true,
+                IOInterface::VERBOSE
+            );
+            
+            return;
+        }
+        
         if (! $this->registerAutoloadFile($autoloadPath, $rootPackage)) {
             return;
         }
         
-        $this->io->write('<info>Successfully injected neunerlei/dbg into your project!</info>');
+        $this->io->write('<info>Successfully injected "' . static::TARGET_PACKAGE_NAME . '" into your project!</info>');
     }
     
     /**
@@ -76,6 +88,30 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $config = $this->composer->getConfig();
         
         return Path::isBasePath($config->get('home'), $config->get('vendor-dir'));
+    }
+    
+    /**
+     * Checks if the dev package is already present in the local installation,
+     * either via "require" or "require-dev", or has been replaced by another package.
+     *
+     * @return bool
+     */
+    protected function isPresentInLocalInstallation(): bool
+    {
+        $packages = $this->composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
+        foreach ($packages as $package) {
+            if ($package->getPrettyName() === static::TARGET_PACKAGE_NAME) {
+                return true;
+            }
+            
+            foreach ($package->getReplaces() as $replacement) {
+                if ($replacement->getTarget() === static::TARGET_PACKAGE_NAME) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     /**
@@ -109,11 +145,11 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     protected function installWrapper(string $installationPath): bool
     {
         if (! function_exists('shell_exec')) {
-            throw new \RuntimeException('Can\'t install neunerlei/dev as global dependency, because the required function "shell_exec" was disabled!');
+            throw new \RuntimeException('Can\'t install "' . static::TARGET_PACKAGE_NAME . '" as global dependency, because the required function "shell_exec" was disabled!');
         }
         
         $this->io->write(
-            'Trying to install/update neunerlei/dev as a global dependency using a sub-composer call at...',
+            'Trying to install/update "' . static::TARGET_PACKAGE_NAME . '" as a global dependency using a sub-composer call at...',
             true,
             IOInterface::VERBOSE
         );
@@ -131,14 +167,14 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         $expectedLastLine = 'No security vulnerability advisories found';
         $res = trim($res);
         if (substr($res, -42) !== $expectedLastLine) {
-            $this->io->write('<error>There seems to be an issue when installing neunerlei/dbg globally...</error>');
+            $this->io->write('<error>There seems to be an issue when installing "' . static::TARGET_PACKAGE_NAME . '" globally...</error>');
             $this->io->write($res);
             
             return false;
         }
         
         $this->io->write(
-            '<info>Global installation of neunerlei/dev is ready to be used!</info>',
+            '<info>Global installation of "' . static::TARGET_PACKAGE_NAME . '" is ready to be used!</info>',
             true,
             IOInterface::VERBOSE
         );
@@ -157,13 +193,13 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     protected function registerAutoloadFile(string $autoloadPath, RootPackageInterface $package): bool
     {
         if (! is_readable($autoloadPath)) {
-            $this->io->write('<error>The global autoload file of neunerlei/dbg at "' . $autoloadPath . '" is not readable!</error>');
+            $this->io->write('<error>The global autoload file of "' . static::TARGET_PACKAGE_NAME . '" at "' . $autoloadPath . '" is not readable!</error>');
             
             return false;
         }
         
         if (! is_callable([$package, 'setAutoload'])) {
-            $this->io->write('<error>The provided root package does not allow autoload override! That prevents the injection of "neunerlei/dbg" as dependency!</error>');
+            $this->io->write('<error>The provided root package does not allow autoload override! That prevents the injection of "' . static::TARGET_PACKAGE_NAME . '" as dependency!</error>');
             
             return false;
         }
