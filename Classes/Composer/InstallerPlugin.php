@@ -24,29 +24,20 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
      */
     protected $io;
     
-    /**
-     * The absolute path to the vendor directory
-     *
-     * @var string
-     */
-    protected $vendorPath;
-    
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             'pre-autoload-dump' => ['onAutoloadDump', -500],
         ];
     }
     
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
-        $config = $this->composer->getConfig();
-        $this->vendorPath = Path::normalize(realpath($config->get('vendor-dir')));
     }
     
-    public function onAutoloadDump()
+    public function onAutoloadDump(): void
     {
         $installPath = $this->getGlobalInstallPath();
         if (! $this->installWrapper($installPath)) {
@@ -61,16 +52,6 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         }
         
         $this->io->write('<info>Successfully injected neunerlei/dbg into your project!</info>');
-        
-        return;
-        
-        print_r($autoloadPath);
-        
-        exit();
-        $rootPackage = $this->composer->getPackage();
-        $req = $rootPackage->a;
-        print_r($req);
-        exit();
     }
     
     protected function getGlobalInstallPath(): string
