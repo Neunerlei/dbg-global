@@ -1,0 +1,23 @@
+{
+	"name": "neunerlei/dbg-global-wrap",
+	"description": "Internal helper, used to make the dbg package globally available",
+	"type": "project",
+	"license": "Apache-2.0",
+	"version": "1.0.0",
+	"authors": [
+		{
+			"name": "Martin Neundorfer",
+			"email": "code@neunerlei.eu",
+			"homepage": "https://www.neunerlei.eu",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"neunerlei/dbg": "*"
+	},
+	"config": {
+		"allow-plugins": {
+			"0.0.0/composer-include-files": true
+		}
+	}
+}
