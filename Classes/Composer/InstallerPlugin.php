@@ -53,9 +53,6 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
-        $autoloadPath = $this->getGlobalAutoloadPath();
-        $rootPackage = $this->composer->getPackage();
-        
         if ($this->abortIfPresentInLocalInstallation()) {
             return;
         }
@@ -64,7 +61,12 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
-        if (! $this->registerAutoloadFile($autoloadPath, $rootPackage)) {
+        if (
+            ! $this->registerAutoloadFile(
+                $this->getGlobalAutoloadPath(),
+                $this->composer->getPackage()
+            )
+        ) {
             return;
         }
         
