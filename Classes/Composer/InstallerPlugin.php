@@ -72,6 +72,10 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
+        if (! $this->installWrapper($this->getGlobalInstallPath())) {
+            return;
+        }
+        
         if (! $this->registerAutoloadFile($autoloadPath, $rootPackage)) {
             return;
         }
@@ -178,7 +182,9 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     protected function installWrapper(string $installationPath): bool
     {
         if (! function_exists('shell_exec')) {
-            throw new \RuntimeException('Can\'t install "' . static::TARGET_PACKAGE_NAME . '" as global dependency, because the required function "shell_exec" was disabled!');
+            $this->io->write('<error>Can\'t install "' . static::TARGET_PACKAGE_NAME . '" as global dependency, because the required function "shell_exec" was disabled!</error>');
+            
+            return false;
         }
         
         $this->io->write(
