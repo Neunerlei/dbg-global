@@ -49,26 +49,14 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function onAutoloadDump(): void
     {
-        if ($this->isGlobalInstallation()) {
-            $this->io->write(
-                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because this is a global installation',
-                true,
-                IOInterface::VERBOSE
-            );
-            
+        if ($this->abortOnGlobalInstallation()) {
             return;
         }
         
         $autoloadPath = $this->getGlobalAutoloadPath();
         $rootPackage = $this->composer->getPackage();
         
-        if ($this->isPresentInLocalInstallation()) {
-            $this->io->write(
-                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because it is already present in the dependency list',
-                true,
-                IOInterface::VERBOSE
-            );
-            
+        if ($this->abortIfPresentInLocalInstallation()) {
             return;
         }
         
@@ -170,6 +158,46 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             $this->composer->getConfig()->get('vendor-dir'),
             'neunerlei-dbg-global-function-shim.php'
         );
+    }
+    
+    /**
+     * Checks if we are in a global installation, writes a log message and returns true if so.
+     *
+     * @return bool True if the process should abort, false if not
+     */
+    protected function abortOnGlobalInstallation(): bool
+    {
+        if ($this->isGlobalInstallation()) {
+            $this->io->write(
+                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because this is a global installation',
+                true,
+                IOInterface::VERBOSE
+            );
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Checks if the package is already in the local installation, writes a log message and returns true if so.
+     *
+     * @return bool True if the process should abort, false if not
+     */
+    protected function abortIfPresentInLocalInstallation(): bool
+    {
+        if ($this->isPresentInLocalInstallation()) {
+            $this->io->write(
+                'Ignoring installation of "' . static::TARGET_PACKAGE_NAME . '", because it is already present in the dependency list',
+                true,
+                IOInterface::VERBOSE
+            );
+            
+            return true;
+        }
+        
+        return false;
     }
     
     /**
