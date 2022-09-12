@@ -17,6 +17,7 @@ use Neunerlei\FileSystem\Path;
 class InstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
     public const TARGET_PACKAGE_NAME = 'neunerlei/dbg';
+    protected const EXPECTED_WRAP_POST_INSTALL_OUTPUT = 'WRAP_HAS_BEEN_INSTALLED_WITHOUT_ISSUES';
     
     /**
      * @var Composer
@@ -57,7 +58,7 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
-        if (! $this->installWrapper($this->getGlobalInstallPath())) {
+        if (! $this->installWrap($this->getGlobalInstallPath())) {
             return;
         }
         
@@ -209,7 +210,7 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
      *
      * @return bool
      */
-    protected function installWrapper(string $installationPath): bool
+    protected function installWrap(string $installationPath): bool
     {
         if (! function_exists('shell_exec')) {
             $this->io->write('<error>Can\'t install "' . static::TARGET_PACKAGE_NAME . '" as global dependency, because the required function "shell_exec" was disabled!</error>');
@@ -233,9 +234,7 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             $this->io->write('<error>Failed to install neunerlei/dev as a global dependency!</error>');
         }
         
-        $expectedLastLine = 'No security vulnerability advisories found';
-        $res = trim($res);
-        if (substr($res, -42) !== $expectedLastLine) {
+        if (strpos($res, static::EXPECTED_WRAP_POST_INSTALL_OUTPUT) === false) {
             $this->io->write('<error>There seems to be an issue when installing "' . static::TARGET_PACKAGE_NAME . '" globally...</error>');
             $this->io->write($res);
             

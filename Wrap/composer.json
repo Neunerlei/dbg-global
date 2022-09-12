@@ -15,6 +15,9 @@
 	"require": {
 		"neunerlei/dbg": "*"
 	},
+	"scripts": {
+		"post-autoload-dump": "echo \"WRAP_HAS_BEEN_INSTALLED_WITHOUT_ISSUES\""
+	},
 	"config": {
 		"allow-plugins": {
 			"0.0.0/composer-include-files": true
