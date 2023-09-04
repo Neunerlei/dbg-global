@@ -62,19 +62,34 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         
+        $autoloadPath = $this->getGlobalAutoloadPath();
+        if ($this->isHardCopy($this->getHardCopyTargetPath())) {
+            if (! $this->installHardCopy(
+                $this->getGlobalInstallPath(),
+                $this->getHardCopyTargetPath()
+            )) {
+                return;
+            }
+            
+            $autoloadPath = $this->getHardCopyAutoloadPath();
+            $disableShim = true;
+        }
+        
         if (
             ! $this->registerAutoloadFile(
-                $this->getGlobalAutoloadPath(),
+                $autoloadPath,
                 $this->composer->getPackage()
             )
         ) {
             return;
         }
         
-        $this->provideShimFile(
-            $this->getShimSourcePath(),
-            $this->getShimTargetPath()
-        );
+        if(!isset($disableShim)){
+            $this->provideShimFile(
+                $this->getShimSourcePath(),
+                $this->getShimTargetPath()
+            );
+        }
         
         $this->io->write('<info>Successfully injected "' . static::TARGET_PACKAGE_NAME . '" into your project!</info>');
     }
@@ -138,6 +153,15 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
     }
     
     /**
+     * Similar to {@see getGlobalAutoloadPath()} but for the hard copy creation
+     * @return string
+     */
+    protected function getHardCopyAutoloadPath(): string
+    {
+        return Path::join($this->getHardCopyTargetPath(), 'vendor/autoload.php');
+    }
+    
+    /**
      * Returns the path where the shim source file is located
      *
      * @return string
@@ -162,6 +186,20 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             'neunerlei-dbg-global-function-shim.php'
         );
     }
+    
+    /**
+     * Returns the path where the files to copy into the current project should be placed
+     *
+     * @return string
+     */
+    protected function getHardCopyTargetPath(): string
+    {
+        return Path::join(
+            $this->composer->getConfig()->get('vendor-dir'),
+            '_dbg_global'
+        );
+    }
+    
     
     /**
      * Checks if we are in a global installation, writes a log message and returns true if so.
@@ -246,6 +284,38 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
             true,
             IOInterface::VERBOSE
         );
+        
+        return true;
+    }
+    
+    /**
+     * Copies the contents of the global Wrap directory into the currently installed vendor directory
+     * This effectively creates a hard copy that does not rely on the global plugin anymore
+     * @param   string  $wrapInstallationPath
+     * @param   string  $installationPath
+     *
+     * @return bool
+     */
+    protected function installHardCopy(string $wrapInstallationPath, string $installationPath): bool
+    {
+        $this->io->write(
+            'Trying to move the globally installed"' . static::TARGET_PACKAGE_NAME . '" into your current project\'s vendor directory...',
+            true,
+            IOInterface::VERBOSE
+        );
+        
+        try {
+            if (Fs::exists($installationPath)) {
+                Fs::remove($installationPath);
+            }
+            
+            Fs::copy($wrapInstallationPath, $installationPath);
+        } catch (\Exception $e) {
+            $this->io->write('<error>There seems to be an issue when creating the hardcopy of "' . static::TARGET_PACKAGE_NAME . '" into your vendor directory...</error>');
+            $this->io->write($e->getMessage());
+            
+            return false;
+        }
         
         return true;
     }
@@ -339,6 +409,35 @@ class InstallerPlugin implements PluginInterface, EventSubscriberInterface
         // Check if the target path is in the list of disabled directories
         foreach ($conf as $k => $v) {
             if (strpos($k, 'noShimDirs.') === 0 && strpos($targetPath, $v) === 0) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Checks if a hard copy of the sources should be done to the outputted composer directory
+     *
+     * @param   string  $targetPath  The path to where the sources should be copied
+     *
+     * @return bool
+     */
+    protected function isHardCopy(string $targetPath): bool
+    {
+        $extra = Factory::createGlobal($this->io, true)->getPackage()->getExtra();
+        if (! is_array($extra['neunerleiDevGlobal'] ?? null)) {
+            return false;
+        }
+        
+        $conf = $extra['neunerleiDevGlobal'];
+        
+        if (! empty($conf['hardCopy'])) {
+            return (bool)$conf['hardCopy'];
+        }
+        
+        foreach ($conf as $k => $v) {
+            if (strpos($k, 'hardCopyDirs.') === 0 && strpos($targetPath, $v) === 0) {
                 return true;
             }
         }

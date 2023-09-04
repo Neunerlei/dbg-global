@@ -29,6 +29,18 @@ For multiple directories, raise the number after "noShimDirs" for each new direc
 
 Use: ```composer global config extra.neunerleiDevGlobal``` to see the current configuration
 
+## Hard copying files
+
+If you don't want to rely on the globally installed plugin, for example in a docker context,
+you can create hard copies of the installed files in your "vendor" directory as well.
+
+You can either enable them globally:
+```composer global config extra.neunerleiDevGlobal.hardCopy true```
+
+Alternatively you can create the hard copies with a per-directory configuration
+```composer global config extra.neunerleiDevGlobal.hardCopyDirs.0 /work/project```
+For multiple directories, raise the number after "hardCopyDirs" for each new directory.
+
 ## Postcardware
 
 You're free to use this package, but if it makes it to your production environment I highly appreciate you sending me a postcard from your hometown, mentioning
