@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.2.0 (2023-09-04)
+
+
+### Features
+
+* introduce "hardCopy" option ([97c2441](https://github.com/Neunerlei/dbg-global/commit/97c2441397edfadaf784add918e207a9f5286a67))
+
 ### 1.1.3 (2022-12-14)
 
 ### 1.1.2 (2022-09-12)
