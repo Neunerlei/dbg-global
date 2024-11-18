@@ -1745,5 +1745,6 @@
         "composer-plugin-api": "^1.0 || ^2.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.6.0",
+    "version": "1.2.1"
 }

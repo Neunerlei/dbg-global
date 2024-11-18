@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.2.1 (2024-11-18)
+
+
+### Bug Fixes
+
+* harden installer against multiple composer installations in the same project ([44b60cc](https://github.com/Neunerlei/dbg-global/commit/44b60cc4dd6d6f9bc39482dbc94198e7cf96b5dd))
+
 ## 1.2.0 (2023-09-04)
 
 
