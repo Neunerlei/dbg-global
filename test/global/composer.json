@@ -1,0 +1,26 @@
+{
+    "name": "neunerlei/dbg-global-test",
+    "description": "A test case to see if the plugin works as expected",
+    "type": "project",
+    "license": "Apache-2.0",
+    "minimum-stability": "dev",
+    "require": {
+        "neunerlei/dbg-global": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/opt/project/"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "neunerlei/dbg-global": true
+        }
+    },
+    "extra": {
+        "neunerleiDevGlobal": {
+            "hardCopy": "true"
+        }
+    }
+}

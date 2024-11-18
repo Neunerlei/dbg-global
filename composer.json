@@ -25,7 +25,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Neunerlei\\DbgGlobal\\": "Classes/"
+			"Neunerlei\\DbgGlobal\\": "src/Classes/"
 		}
 	},
 	"extra": {

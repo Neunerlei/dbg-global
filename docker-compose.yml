@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  app:
+    container_name: ${PROJECT_NAME}-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DOCKER_RUNTIME=${DOCKER_RUNTIME:-docker}
+        - DOCKER_GID=${DOCKER_GID:-1000}
+        - DOCKER_UID=${DOCKER_UID:-1000}
+    user: "${DOCKER_USER:-1000:1000}"
+    tty: true # Keeps the container running indefinitely
+    volumes:
+      - './:/opt/project'
+      - './test/global/:/opt/test'

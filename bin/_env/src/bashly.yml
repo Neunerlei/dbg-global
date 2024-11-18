@@ -1,0 +1,39 @@
+name: env
+help: Environment Control application
+version: 1.0.0
+
+commands:
+  - name: up
+    help: similar to docker-compose up, but sets all the required environment variables for buildkit. (All docker command options are valid)
+    catch_all: true
+    flags:
+      - long: --attach
+        short: -f
+        help: By default, the containers are started daemonized, use this to attach to their output
+  - name: stop
+    help: simple alias to docker-compose stop
+    catch_all: true
+  - name: down
+    help: simple alias to docker-compose down
+    catch_all: true
+  - name: clean
+    help: removes the existing container image
+    flags:
+      - long: --yes
+        short: -y
+        help: Don't ask just do...
+  - name: build
+    help: builds the docker image for local testing
+  - name: rebuild-cli
+    help: rebuilds the bashly application you are currently using, based on the sources
+  - name: ssh
+    help: basically your docker-compose exec into the main app container
+    flags:
+      - long: --cmd
+        short: -c
+        arg: command
+        default: bash
+        help: By default, we will use "bash" as command, you can use "sh" or any other command if you want to
+  - name: composer
+    help: runs a certain composer command for the project
+    catch_all: true
