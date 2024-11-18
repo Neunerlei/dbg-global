@@ -6,9 +6,8 @@ if(!is_readable(__DIR__ . '/vendor/autoload.php')) {
     exit(1);
 }
 
-static $autoLoader = null;
-if($autoLoader === null) {
-    $autoLoader = require __DIR__ . '/vendor/autoload.php';
+if(!isset($GLOBALS['DBG_GLOBAL_AUTOLOADER'])) {
+    $GLOBALS['DBG_GLOBAL_AUTOLOADER'] = require __DIR__ . '/vendor/autoload.php';
 }
 
-return $autoLoader;
+return $GLOBALS['DBG_GLOBAL_AUTOLOADER'];
